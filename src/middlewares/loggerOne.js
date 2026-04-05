@@ -1,5 +1,5 @@
 const loggerOne = (request, response, next) => {
-    console.log('Log 1');
+    console.log(`${request.method} ${request.originalUrl}`);
     next();
 }
 
