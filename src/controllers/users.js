@@ -1,129 +1,76 @@
  const { User, Book } = require('../models/user');
 
- const getUsers = (request, response) => {
+ const getUsers = (request, response, next) => {
     // Get all users
-    return User.find({}).then((data) => {
-        response.status(200).send(data) }
-    ).catch(e => response.status(500).send({ message: e.message }));
+    User.find({})
+        .then((data) => response.status(200).send(data)) 
+        .catch(next);
 };
 
-const getUser = (request, response) => {
+const getUser = (request, response, next) => {
     // Get user
     const { user_id } = request.params;
-    return User.findById(user_id).then((data) => {
-        if (!data) {
-            return response.status(404).send({ message: 'Пользователь не найден' });
-        }
-        response.status(200).send(data);
-    }).catch(e => {
-        if (e.name === 'CastError') {
-            return response.status(404).send({ message: 'Некорректный ID пользователя' });
-        }
-        response.status(500).send({ message: e.message });
-    });
+    User.findById(user_id)
+        .then((data) => {
+            if (!data) {
+                return response.status(404).send({ message: 'Пользователь не найден' });
+            }
+            response.status(200).send(data);
+        })
+        .catch(next);
 };
 
-const createUser = (request, response) => {
+const createUser = (request, response, next) => {
     // Create new user  
-    return User.create({ ...request.body }).then(
-        (user) => { response.status(201).send(user) }
-    ).catch(e => response.status(500).send({ message: e.message }));
+    User.create({ ...request.body })
+        .then((user) => response.status(201).send(user))
+        .catch(next);
 };
 
-const updateUser = (request, response) => {
+const updateUser = (request, response, next) => {
     // Update user
     const { user_id } = request.params;
-    return User.findByIdAndUpdate(user_id, { ...request.body }, { new: true }).then(
-       (user) => { 
-        if (!user) {
-            return response.status(404).send({ message: 'Пользователь не найден' });
-        }
-        response.status(200).send(user);
-    }).catch(e => response.status(500).send({ message: e.message }));
+    User.findByIdAndUpdate(user_id, { ...request.body }, { new: true })
+        .then((user) => { 
+            if (!user) {
+                return response.status(404).send({ message: 'Пользователь не найден' });
+            }
+            response.status(200).send(user);
+        })
+        .catch(next);
 };
 
-const deleteUser = (request, response) => {
+const deleteUser = (request, response, next) => {
     // Delete user
     const { user_id } = request.params;
-    return User.findByIdAndDelete(user_id).then(
-       (user) => { 
-        if (!user) {
-            return response.status(404).send({ message: 'Пользователь не найден' });
-        }
-        response.status(200).send({ message: 'Пользователь успешно удалён' });
-    }).catch(e => response.status(500).send({ message: e.message }));
+    User.findByIdAndDelete(user_id)
+        .then((user) => { 
+            if (!user) {
+                return response.status(404).send({ message: 'Пользователь не найден' });
+            }
+            response.status(200).send({ message: 'Пользователь успешно удалён' });
+        })
+        .catch(next);
 };
 
-const getBooks = (request, response) => {
-    // Get all books
-    return Book.find({}).then((data) => {
-        response.status(200).send(data) }
-    ).catch(e => response.status(500).send({ message: e.message }));
-};
 
-const getBook = (request, response) => {
-    // Get book
-    const { book_id } = request.params;
-    return Book.findById(book_id).then((data) => {
-        if (!data) {
-            return response.status(404).send({ message: 'Книга не найдена' });
-        }
-        response.status(200).send(data);
-    }).catch(e => {
-        if (e.name === 'CastError') {
-            return response.status(404).send({ message: 'Некорректный ID книги' });
-        }
-        response.status(500).send({ message: e.message });
-    });
-};
-
-const createBook = (request, response) => {
-    // Create new book 
-    return Book.create({ ...request.body }).then(
-        (book) => { response.status(201).send(book) }
-    ).catch(e => response.status(500).send({ message: e.message }));
-};
-
-const updateBook = (request, response) => {
-    // Update book
-    const { book_id } = request.params;
-    return Book.findByIdAndUpdate(book_id, { ...request.body }, { new: true }).then(
-       (book) => { response.status(200).send(book) } 
-    ).catch(e => response.status(500).send({ message: e.message }));
-};
-
-const deleteBook = (request, response) => {
-    // Delete book
-    const { book_id } = request.params;
-    return Book.findByIdAndDelete(book_id).then((book) => { 
-        if (!book) {
-            return response.status(404).send({ message: 'Книга не найдена' });
-        }
-        response.status(200).send({ message: 'Книга успешно удалена' });
-    }).catch(e => response.status(500).send({ message: e.message }));
-};
 
 // Получить все книги пользователя
-const getUserBooks = (request, response) => {
+const getUserBooks = (request, response, next) => {
     const { user_id } = request.params;
     
-    return User.findById(user_id).populate('books')
+    User.findById(user_id).populate('books')
         .then((user) => {
             if (!user) {
                 return response.status(404).send({ message: 'Пользователь не найден' });
             }
             response.status(200).send(user.books || []);
         })
-        .catch((e) => {
-            if (e.name === 'CastError') {
-                return response.status(404).send({ message: 'Некорректный ID пользователя' });
-            }
-            response.status(500).send({ message: e.message });
-        });
+        .catch(next);
 };
 
 // Взять книгу (выдать книгу пользователю)
-const takeBook = (request, response) => {
+const takeBook = (request, response, next) => {
     const { user_id, book_id } = request.params;
     
     Promise.all([
@@ -162,19 +109,14 @@ const takeBook = (request, response) => {
             }
         });
     })
-    .catch((e) => {
-        if (e.name === 'CastError') {
-            return response.status(404).send({ message: 'Некорректный ID' });
-        }
-        response.status(500).send({ message: e.message });
-    });
+    .catch(next);
 };
 
 // Вернуть книгу
-const returnBook = (request, response) => {
+const returnBook = (request, response, next) => {
     const { user_id, book_id } = request.params;
     
-    return User.findById(user_id)
+    User.findById(user_id)
         .then((user) => {
             if (!user) {
                 return response.status(404).send({ message: 'Пользователь не найден' });
@@ -200,12 +142,7 @@ const returnBook = (request, response) => {
                 }
             });
         })
-        .catch((e) => {
-            if (e.name === 'CastError') {
-                return response.status(404).send({ message: 'Некорректный ID' });
-            }
-            response.status(500).send({ message: e.message });
-        });
+        .catch(next);
 };
 
 module.exports = {
@@ -214,11 +151,6 @@ module.exports = {
     createUser,
     updateUser,
     deleteUser,
-    getBooks,
-    getBook,
-    createBook,
-    updateBook,
-    deleteBook,
     getUserBooks,
     takeBook,
     returnBook
